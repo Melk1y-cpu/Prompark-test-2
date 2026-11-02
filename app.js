@@ -23,6 +23,11 @@ const submitLabel = form.querySelector('.submit-label');
 const status = document.querySelector('#form-status');
 const nameInput = form.elements.name;
 const contactInput = form.elements.contact;
+const emailDelivery = form.dataset.delivery === 'email';
+if (emailDelivery) {
+  submitLabel.textContent = 'Подготовить письмо';
+  document.querySelector('#form-description').textContent = 'Заполните форму — подготовим письмо в отдел продаж. Затем откройте его в вашем почтовом приложении и отправьте.';
+}
 let sending = false;
 function showStatus(message, state) {
   status.textContent = message;
@@ -46,6 +51,18 @@ form.addEventListener('submit', async event => {
     name, contact, area: data.get('area'), activity: data.get('activity'),
     details: data.get('details'), website: data.get('website'), consent: data.get('consent') === 'on',
   };
+  if (emailDelivery) {
+    const body = `Здравствуйте! Интересует размещение в парке «Элгрант Пестрецы».\n\nИмя: ${name}\nКонтакт: ${contact}\nПлощадь: ${payload.area}\nДеятельность: ${payload.activity || 'Не указана'}\n\n${payload.details || 'Прошу уточнить доступные участки и условия размещения.'}\n\nСогласен на обработку этих данных для ответа на обращение.`;
+    showStatus('Письмо подготовлено. Откройте его в почтовом приложении и нажмите «Отправить». Если почтовое приложение не настроено, напишите на Iv08dem@yandex.ru или позвоните: +7 (993) 402-09-25.', 'info');
+    const emailLink = document.createElement('a');
+    emailLink.href = `mailto:${form.dataset.recipient}?subject=${encodeURIComponent('Заявка — Элгрант Пестрецы')}&body=${encodeURIComponent(body)}`;
+    emailLink.textContent = 'Открыть почтовое приложение →';
+    emailLink.target = '_blank';
+    emailLink.rel = 'noopener';
+    emailLink.className = 'text-link';
+    status.append(emailLink);
+    return;
+  }
   sending = true;
   submit.disabled = true;
   fields.disabled = true;
